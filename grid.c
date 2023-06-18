@@ -15,9 +15,9 @@ inline static long igrid(const long ix, const long iy, const long iz, const long
 
 static void grid_build(type_real *Pos)
 {
-  long i, j;
-  long ix, iy, iz;
-	long ibox;
+  long long i, j;
+  long long ix, iy, iz;
+	long long ibox;
   double fac;
   type_int *Id;
   unsigned long tmp;
@@ -26,15 +26,17 @@ static void grid_build(type_real *Pos)
 
   fac = (double)grid.ngrid/(double)cp.lbox ;
 	fprintf(stdout,"Building Grid..... Ngrid = %ld\n",grid.ngrid);
+  fflush(stdout);
 
   Id = (type_int *) malloc(grid.nobj*sizeof(type_int));
+  assert(Id != NULL);
 
-  for(i=0;i<grid.nobj;i++)
+  for(i=0;i<(long long)grid.nobj;i++)
   {
 
-    ix = (long)((double)(Pos[Ndim*i])  *fac);
-    iy = (long)((double)(Pos[Ndim*i+1])*fac);
-    iz = (long)((double)(Pos[Ndim*i+2])*fac);
+    ix = (long long)((double)(Pos[((long unsigned)Ndim*i)])  *fac);
+    iy = (long long)((double)(Pos[((long unsigned)Ndim*i)+1])*fac);
+    iz = (long long)((double)(Pos[((long unsigned)Ndim*i)+2])*fac);
 
 #ifdef PERIODIC
     ibox = igrid(( (ix >= (long)grid.ngrid) ? ix - (long)grid.ngrid : ( (ix<0) ? ix + (long)grid.ngrid : ix ) ),\
@@ -48,10 +50,15 @@ static void grid_build(type_real *Pos)
                  (long)grid.ngrid);
 #endif
 
+    assert(ibox>=0 && ibox<((long long)grid.ngrid*(long long)grid.ngrid*(long long)grid.ngrid));
+
     Id[i] = grid.start[ibox];
     grid.start[ibox] = i;
   }
- 
+
+	fprintf(stdout,"FINISH first part Building Grid\n");
+  fflush(stdout);
+
   j = 0;
   for(ibox=0;ibox<grid.nalloc;ibox++)
   {      
@@ -66,26 +73,29 @@ static void grid_build(type_real *Pos)
     }
   }
 
+  fprintf(stdout,"BEGING reorder part Building Grid\n");
+  fflush(stdout);
+
   for(i=0;i<grid.nobj;i++)
   {
     if(Id[i] != i)
     {
-      Pos_source[0] = Pos[Ndim*i];
-      Pos_source[1] = Pos[Ndim*i+1];
-      Pos_source[2] = Pos[Ndim*i+2];
+      Pos_source[0] = Pos[(long unsigned)Ndim*i];
+      Pos_source[1] = Pos[(long unsigned)Ndim*i+1];
+      Pos_source[2] = Pos[(long unsigned)Ndim*i+2];
     	idsource = Id[i];
       dest = Id[i];
 
       while(1)
       {
-        Pos_save[0] = Pos[Ndim*dest];
-        Pos_save[1] = Pos[Ndim*dest+1];
-        Pos_save[2] = Pos[Ndim*dest+2];
+        Pos_save[0] = Pos[(long unsigned)Ndim*dest];
+        Pos_save[1] = Pos[(long unsigned)Ndim*dest+1];
+        Pos_save[2] = Pos[(long unsigned)Ndim*dest+2];
 	      idsave = Id[dest];
 
-        Pos[Ndim*dest]   = Pos_source[0];
-        Pos[Ndim*dest+1] = Pos_source[1];
-        Pos[Ndim*dest+2] = Pos_source[2];
+        Pos[(long unsigned)Ndim*dest]   = Pos_source[0];
+        Pos[(long unsigned)Ndim*dest+1] = Pos_source[1];
+        Pos[(long unsigned)Ndim*dest+2] = Pos_source[2];
         Id[dest] = idsource;
 
         if(dest == i)  break;
@@ -108,7 +118,7 @@ static void grid_build(type_real *Pos)
 
 extern void grid_init(type_int nobj, type_real *Pos, const type_int cell_size)
 {
-  unsigned long i;
+  long unsigned i;
 
   grid.nobj = nobj;
   grid.ngrid = (long)(cp.lbox/cell_size);

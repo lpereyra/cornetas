@@ -11,8 +11,9 @@ struct gridst
 	long ngrid;
 	type_int nobj;
 	type_int *start;
-} grid;
+};
 
+extern struct gridst grid;
 extern void grid_init(type_int nobj, type_real *Pos, const type_int cell_size);
 extern void grid_free(void);
 

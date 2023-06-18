@@ -1,7 +1,7 @@
 #ifndef COLORES_H
 #define COLORES_H
 
-char message[200];
+extern char message[200];
 
 #define YELLOW(a)   fprintf(stdout,"\033[01;33m%s\033[22;0m",(a))
 #define DEFA(a)     fprintf(stdout,"\033[01;37m%s\033[22;0m",(a))

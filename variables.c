@@ -8,22 +8,16 @@
 #include "leefile.h"
 #include "colores.h"
 
-type_int  nfrac;
-type_real *fof;
-#ifdef MCRITIC
- type_real m_critica;
-#endif
-type_int  NNN;
 type_real *tracers;
 type_real *centros;
 type_real *vdir_centros;
+struct cosmoparam cp;
+char message[200];
 
 extern void init_variables(int argc, char **argv)
 {
-
   FILE *pfin;
   char filename[200];
-  type_int i;
 
   RED("Initializing variables...\n");
 
@@ -39,7 +33,7 @@ extern void init_variables(int argc, char **argv)
     sprintf(message,"can't read file `%s`\nneed # of snapshots\n",filename);RED(message);
     exit(0);
   }
-    
+
   if(!fscanf(pfin,"%s  \n",snap.root))
   {
     sprintf(message,"can't read file `%s`\nneed snapshots directory\n",filename);RED(message);
@@ -58,47 +52,14 @@ extern void init_variables(int argc, char **argv)
     exit(0);
   }
 
-  if(!fscanf(pfin,"%u  \n",&nfrac))
-  {
-    sprintf(message,"can't read file `%s`\nneed identification steps\n",filename);RED(message);
-    exit(0);
-  }
-
-  fof = (type_real *) malloc(nfrac*sizeof(type_real));
-
-  for(i=0;i<nfrac;i++)
-  {
-    #ifdef PRECDOUBLE
-    if(!fscanf(pfin,"%lf  \n",&fof[i]))
-    #else
-    if(!fscanf(pfin,"%f   \n",&fof[i]))
-    #endif
-    {
-      sprintf(message,"can't read file `%s`\nneed %d identification step\n",filename,i);RED(message);
-      exit(0);
-    }
-  }
-
-  #ifdef MCRITIC
-
-  #ifdef PRECDOUBLE
-    if(!fscanf(pfin,"%lf \n",&m_critica))
-  #else
-    if(!fscanf(pfin,"%f \n",&m_critica))
-  #endif
-    {
-      sprintf(message,"can't read file `%s`\nneed M_CRITIC\n",filename);RED(message);
-      exit(0);
-    }
-  #endif
-
   fclose(pfin);
 
   /////////////////////////////////////////////////////////////////////////
   char *p = snap.name;
   while (*p) 
   { 
-    if(isdigit(*p)) { // Upon finding a digit, ...
+    if(isdigit(*p)) 
+    { // Upon finding a digit, ...
         snap.num = strtol(p, &p, 10); // Read a number, ...
     } else { // Otherwise, move on to the next character.
         p++;
@@ -106,23 +67,13 @@ extern void init_variables(int argc, char **argv)
   }
   ///////////////////////////////////////////////////////////////////////
 
-
   BLUE("********** Information ***********\n");
   sprintf(message,"Snapshots directory:     %s\n",snap.root);BLUE(message);
   sprintf(message,"Snapname:                %s\n",snap.name);BLUE(message);
   sprintf(message,"Snapnum:                 %d\n",snap.num);BLUE(message);
   sprintf(message,"# of snapshots:          %d\n",snap.nfiles);BLUE(message);
   sprintf(message,"Softening of simulation: %lf \n",cp.soft);BLUE(message);
-  sprintf(message,"Identification steps:    %d\n",nfrac);BLUE(message);
-  for(i=0;i<nfrac;i++)
-  {
-     sprintf(message,"%d overdensity          %.2f\n",i,fof[i]);BLUE(message);
-     fof[i] = cbrt(1./(1.+fof[i]));
-  }
-
-  #ifdef MCRITIC
-  sprintf(message,"M_CRIT [10^10 Msol / h]  %f\n",m_critica);RED(message);
-  #endif
+  BLUE("************* Options ************\n");
 
   BLUE("********** Makefile Options ***********\n");
   #ifdef PERIODIC
@@ -134,8 +85,8 @@ extern void init_variables(int argc, char **argv)
   #ifdef LONGIDS
   BLUE("  LONGIDS\n");
   #endif
-  #ifdef LOCK
-  BLUE("  LOCK\n");
+  #ifdef POSFACTOR
+  sprintf(message,"  POSFACTOR = %f\n",POSFACTOR);BLUE(message);
   #endif
   #ifdef VELFACTOR
   sprintf(message,"  VELFACTOR = %f\n",VELFACTOR);BLUE(message);
@@ -143,12 +94,15 @@ extern void init_variables(int argc, char **argv)
   #ifdef STORE_VELOCITIES
   BLUE("  STORE_VELOCITIES\n");
   #endif
-  #ifdef LOG
-    BLUE("  LOG BINS\n");
-  #else
-    BLUE("  LIN BINS\n");
+  #ifdef STORE_IDS
+  BLUE("  STORE_IDS\n");
   #endif
-  sprintf(message,"  NSAMPLE %u\n",NSAMPLES);BLUE(message);
+  #ifdef STORE_MASSES
+  BLUE("  STORE_MASSES\n");
+  #endif
+
   GREEN("END\n");
+
+  return;
 }
 

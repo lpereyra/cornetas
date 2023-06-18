@@ -23,6 +23,8 @@ struct cosmoparam
 #ifndef HALOS_PARTICULAS
     type_int  ngrup     ;  /* Numero de grupos                      */
 #endif
-} cp;
+};
+
+extern struct cosmoparam cp;
 
 #endif
